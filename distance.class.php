@@ -1,26 +1,47 @@
 <?php
 
 define("ERROR", false);
-define("KM", "meters");
-define("MILES", "feet");
+define("METER", 1);
+define("KM", 2);
+define("MILES", 3);
+define("YARD", 4);
 
 class Distance
 {
+    public $type;
+    public $round = 2;
 
-    private $type;
-
-    public function __constructor($type) {
+    public function __construct($type) {
         $this->type = $type;
-        $this->init();
     }
 
-    private function init() {
-
-    }
-
-    private function distance($from, $to) {
+    public function get_distance($from, $to) {
         $retval = $this->get_info_between_points($from, $to);
-        return round($retval->Directions->Distance->meters/1000,2);
+        if ($retval === ERROR) {
+            return "<strong>An error has shown up</strong>";
+        }
+
+        return $this->distanceToType($retval->Directions->Distance->meters);
+    }
+
+    private function distanceToType($distance) {
+        switch($this->type) {
+            case 1:
+                return round($distance, $this->round);
+                break;
+            case 2:
+                return round(($distance / 100), $this->round);
+                break;
+            case 3:
+                return round(($distance * 0.00062137), $this->round);
+                break;
+            case 4:
+                return round(($distance * 1.0936), $this->round);
+                break;
+            default:
+                return ERROR;
+                break;
+        }
     }
 
     private function get_info_between_points($from, $to) {
@@ -33,10 +54,10 @@ class Distance
 
         $ch = curl_init( $url);
 
-        curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, 1);
-        curl_setopt( $ch, CURLOPT_MAXREDIRS, 3);
-        curl_setopt( $ch, CURLOPT_REFERER, 'http://google.com');
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+        curl_setopt($ch, CURLOPT_MAXREDIRS, 3);
+        curl_setopt($ch, CURLOPT_REFERER, 'http://google.com');
 
         $jsonString = curl_exec($ch);
 
